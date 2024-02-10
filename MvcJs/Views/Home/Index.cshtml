@@ -1,0 +1,115 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+<div id="vueapp" class="">
+    <div class="card row">
+        <div class="card-header">
+            <h3 class="card-title">Усложнение</h3>
+        </div>
+        <div class="card-body">
+            <div class="mt-2">
+                <div class="text-center">
+                    <span class="text-danger" v-if="modelError">{{modelError}}</span>
+                </div>
+                <div class="form-group">
+                    <label>Название товара</label>
+                    <input class="form-control" placeholder="Введите название товара" v-model="productInfo.name" />
+                </div>
+                <div class="form-group">
+                    <label>Описание товара</label>
+                    <textarea class="form-control" placeholder="Введите описание товара" v-model="productInfo.description"></textarea>
+                </div>
+                <button class="btn btn-danger" v-on:click="saveProduct">Сохранить</button>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <input placeholder="Фильтр" class="form-control form-control-sm" v-model="searchfilter.name"
+                   v-on:change="getProducts" />
+        </div>
+    </div>
+    <div class="card row mt-5">
+        <div class="card-header">
+            <h3 class="card-title">Массив данных</h3>
+        </div>
+        <div class="card-body d-flex">
+
+            <template v-for="(product, index) in products" :key="product.id">
+                <div class="card mt-2">
+                    <div class="card-header">
+                        <h3 class="card-title">{{product.name}}</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>{{product.description}}</p>
+                    </div>
+                    <div class="card-footer">
+                        <button class="btn btn-success">Добавить в корзину</button>
+                    </div>
+                </div>
+        </template>
+    </div>
+</div>
+
+    @section Scripts{
+    <script src="~/js/vue.js"></script>
+    <script src="~/js/axios.js"></script>
+    <script>
+        const VueData = {
+            data() {
+                return {
+                    test: 'Hello World',
+                    counter: 1,
+                    productInfo: {
+                        name: '',
+                        description: ''
+                    },
+                    searchfilter: {
+                        name: ''
+                    },
+                    modelError: null,
+                    products: [],
+                }
+            },
+            async mounted() {
+                //await this.getProductInfo();
+                await this.getProducts();
+            },
+            methods: {
+                clicker() {
+                    this.counter += 1;
+                },
+                saveProduct() {
+                    let th = this;
+                    axios.post('/Home/CreateProductInfo/', th.productInfo)
+                        .then((response) => {
+                            th.modelError = null;
+                            th.getProducts();
+                        }).catch((err) => {
+                            th.modelError = err.response.data;
+                        });
+                },
+                getProductInfo: async function () {
+                    let th = this;
+                    axios.get('/Home/GetProductInfo/')
+                        .then((response) => {
+                            th.productInfo = response.data;
+                        }).catch((err) => {
+                            alert('Ошибка при получении данных');
+                        });
+                },
+                getProducts() {
+                    let th = this;
+                    axios.post('/Home/GetAllProducts/', th.searchfilter)
+                        .then((response) => {
+                            th.products = response.data;
+                        }).catch((err) => {
+                            alert('Ошибка при получении данных');
+                        });
+                }
+            }
+        }
+
+        Vue.createApp(VueData).mount('#vueapp')
+    </script>
+}
